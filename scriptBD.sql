@@ -208,6 +208,51 @@ LEFT JOIN CLASES C ON E.ID_CLASE = C.ID_CLASE
 LEFT JOIN ASISTENCIA_EVENTOS AE ON E.ID_EVENTO = AE.ID_EVENTO
 GROUP BY E.ID_EVENTO, C.NOMBRE;
 
+
+CREATE OR REPLACE VIEW VISTA_CUADRO_HONOR AS
+SELECT 
+    u.id_usuario,
+    u.nombre || ' ' || u.apellidos AS estudiante,
+    ROUND(AVG(c.calificacion), 2) AS promedio_general,
+    COUNT(DISTINCT a.id_asignacion) AS total_asignaciones,
+    COUNT(c.id_calificacion) AS tareas_calificadas
+FROM usuarios u
+JOIN calificaciones c ON u.id_usuario = c.id_estudiante
+JOIN asignaciones a ON c.id_asignacion = a.id_asignacion
+WHERE u.tipo_usuario = 'ESTUDIANTE'
+GROUP BY u.id_usuario, u.nombre, u.apellidos
+ORDER BY promedio_general DESC;
+
+
+CREATE OR REPLACE VIEW VISTA_CUADRO_HONOR_GENERAL AS
+SELECT 
+    u.id_usuario,
+    u.nombre || ' ' || u.apellidos AS estudiante,
+    ROUND(AVG(c.calificacion), 2) AS promedio_general,
+    COUNT(c.id_calificacion) AS tareas_calificadas
+FROM usuarios u
+JOIN calificaciones c ON u.id_usuario = c.id_estudiante
+WHERE u.tipo_usuario = 'ESTUDIANTE'
+GROUP BY u.id_usuario, u.nombre, u.apellidos
+ORDER BY promedio_general DESC;
+
+
+CREATE OR REPLACE VIEW VISTA_CUADRO_HONOR_CLASE AS
+SELECT 
+    u.id_usuario,
+    a.id_clase,
+    cl.nombre AS clase,
+    u.nombre || ' ' || u.apellidos AS estudiante,
+    ROUND(AVG(c.calificacion), 2) AS promedio_clase,
+    COUNT(c.id_calificacion) AS tareas_calificadas
+FROM usuarios u
+JOIN calificaciones c ON u.id_usuario = c.id_estudiante
+JOIN asignaciones a ON c.id_asignacion = a.id_asignacion
+JOIN clases cl ON a.id_clase = cl.id_clase
+WHERE u.tipo_usuario = 'ESTUDIANTE'
+GROUP BY u.id_usuario, a.id_clase, cl.nombre, u.nombre, u.apellidos
+ORDER BY promedio_clase DESC;
+
 --------------------- TRIGGERS --------------------------
 -- VALIDAR FECHA DE ASISTENCIAS (NO FUTURAS)
 CREATE OR REPLACE FUNCTION VALIDAR_FECHA_ASISTENCIA()
