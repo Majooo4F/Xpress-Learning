@@ -115,21 +115,26 @@ exports.loginProfesor = async (req, res) => {
 
 // REGISTRO DE USUARIO
 exports.registrar = async (req, res) => {
-    const { email, contrasena, nombre, apellidos, tipo_usuario, telefono, matricula} = req.body;
-    const tipoUsuario = tipo_usuario || 'ESTUDIANTE';
+    const { email, contrasena, nombre, apellidos, telefono, matricula } = req.body;
+
+    // Determinar tipo de usuario basado en el dominio del email
+    const esProfesor = email.toLowerCase().endsWith('@elon.school');
+    const tipoUsuario = esProfesor ? 'PROFESOR' : 'ESTUDIANTE';
 
     try {
-        // 1. HASH DE LA CONTRASENA
+        // 1. HASH DE LA CONTRASEÑA
         const salt = await bcrypt.genSalt(10);
         const contrasenaHash = await bcrypt.hash(contrasena, salt);
 
         // 2. Guardar usuario en la BD
         const { rows } = await query(
-            'INSERT INTO USUARIOS (EMAIL, CONTRASENA, NOMBRE, APELLIDOS, TIPO_USUARIO, TELEFONO, MATRICULA) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            `INSERT INTO USUARIOS 
+            (EMAIL, CONTRASENA, NOMBRE, APELLIDOS, TIPO_USUARIO, TELEFONO, MATRICULA) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
             [email, contrasenaHash, nombre, apellidos, tipoUsuario, telefono, matricula]
         );
 
-        // 3. Generar token automaticamente tras el registro
+        // 3. Generar token automáticamente tras el registro
         const token = jwt.sign(
             { userId: rows[0].id_usuario, tipo_usuario: rows[0].tipo_usuario },
             process.env.JWT_SECRET,
@@ -143,7 +148,7 @@ exports.registrar = async (req, res) => {
 
     } catch (error) {
         console.error('Error en registrar: ', error);
-        if (error.code === '23505') { // ESTE NUMERO DE ERROR ES POR UN EMIAL DUPLICADO
+        if (error.code === '23505') {
             res.status(400).json({ error: 'El email ya fue registrado' });
         } else {
             res.status(500).json({ error: 'Error interno del servidor' });
