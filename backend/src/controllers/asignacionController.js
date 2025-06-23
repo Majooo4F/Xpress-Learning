@@ -2,14 +2,14 @@ const { query } = require('../config/db');
 const logger = require('../utils/logger');
 
 exports.crearAsignacion = async (req, res) => {
-    const { id_clase, titulo, descripcion, fecha_entrega, califiacion_maxima, url_archivo } = req.body;
+    const { id_clase, id_profesor, titulo, descripcion, fecha_entrega, califiacion_maxima, url_archivo } = req.body;
 
     try {
         const result = await query(
             `INSERT INTO ASIGNACIONES 
-            (ID_CLASE, TITULO, DESCRIPCION, FECHA_ENTREGA, CALIFIACACION_MAXIMA, URL_ARCHIVO) 
-            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [id_clase, titulo, descripcion, fecha_entrega, califiacion_maxima, url_archivo]
+            (ID_CLASE, ID_PROFESOR, TITULO, DESCRIPCION, FECHA_ENTREGA, CALIFIACACION_MAXIMA, URL_ARCHIVO) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+            [id_clase, id_profesor, titulo, descripcion, fecha_entrega, califiacion_maxima, url_archivo]
         );
 
         res.status(201).json(result.rows[0]);
@@ -18,6 +18,7 @@ exports.crearAsignacion = async (req, res) => {
         res.status(500).json({ error: 'Error al crear asignación' });
     }
 };
+
 
 exports.obtenerAsignacionesPorClase = async (req, res) => {
     const { idClase } = req.params;
@@ -84,5 +85,23 @@ exports.eliminarAsignacion = async (req, res) => {
     } catch (error) {
         logger.error('Error al eliminar asignación:', error);
         res.status(500).json({ error: 'Error al eliminar asignación' });
+    }
+};
+
+
+// Obtener asignaciones por profesor
+exports.obtenerAsignacionesPorProfesor = async (req, res) => {
+    const { idProfesor } = req.params;
+
+    try {
+        const result = await query(
+            `SELECT * FROM ASIGNACIONES WHERE ID_PROFESOR = $1 ORDER BY FECHA_ENTREGA ASC`,
+            [idProfesor]
+        );
+
+        res.status(200).json(result.rows);
+    } catch (error) {
+        logger.error('Error al obtener asignaciones por profesor:', error);
+        res.status(500).json({ error: 'Error al obtener asignaciones por profesor' });
     }
 };

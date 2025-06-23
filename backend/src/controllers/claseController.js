@@ -86,6 +86,25 @@ exports.putClase = async (req, res) => {
     }
 };
 
+
+// Obtener clases por profesor
+exports.getClasesPorProfesor = async (req, res) => {
+    const { idProfesor } = req.params;
+
+    try {
+        const result = await query(
+            'SELECT * FROM CLASES WHERE ID_PROFESOR = $1 ORDER BY FECHA_CREACION DESC',
+            [idProfesor]
+        );
+
+        res.status(200).json(result.rows);
+    } catch (error) {
+        logger.error('Error al obtener clases por profesor:', error);
+        res.status(500).json({ error: 'Error al obtener clases del profesor' });
+    }
+};
+
+
 // proximo DELETE clase
 // exports.deletClase = async (req, res) => {
 //     // Implementacion para el DELETE /clases/:id

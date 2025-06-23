@@ -18,4 +18,7 @@ router.put('/:id', authenticateJWT, asignacionController.editarAsignacion);
 // Eliminar asignación (opcional)
 router.delete('/:id', authenticateJWT, asignacionController.eliminarAsignacion);
 
+// Obtener asignaciones por profesor
+router.get('/profesor/:idProfesor', authenticateJWT, asignacionController.obtenerAsignacionesPorProfesor);
+
 module.exports = router;
